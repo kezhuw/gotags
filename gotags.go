@@ -27,6 +27,7 @@ import (
 	"container/vector"
 	"fmt"
 	"go/ast"
+	"go/token"
 	"go/parser"
 	"os"
 	"sort"
@@ -36,28 +37,31 @@ var (
 	tags vector.StringVector
 )
 
+var fset = token.NewFileSet()
+
 func output_tag(name *ast.Ident, kind byte) {
+	pos := fset.Position(name.NamePos);
 	tags.Push(fmt.Sprintf("%s\t%s\t%d;\"\t%c",
-		name.Name(), name.Position.Filename, name.Position.Line, kind))
+		name.Name, pos.Filename, pos.Line, kind))
 }
 
 func main() {
 	parse_files()
 
-	println("!_TAG_FILE_SORTED\t1\t")
-	sort.SortStrings(tags)
+	fmt.Println("!_TAG_FILE_SORTED\t1\t")
+	sort.StringSlice(tags).Sort()
 	for _, s := range tags {
-		println(s)
+		fmt.Println(s)
 	}
 }
 
 const FUNC, TYPE, VAR = 'f', 't', 'v'
 
 func parse_files() {
-	for i, m := 1, len(os.Args); i < m; i++ {
-		tree, ok := parser.ParseFile(os.Args[i], nil, nil, 0)
+	for _, file := range os.Args[1:] {
+		tree, ok := parser.ParseFile(fset, file, nil, 0)
 		if ok != nil {
-			println("error parsing file", os.Args[i], ok.String())
+			fmt.Println("error parsing file", file, ok.String())
 			panic(nil)
 		}
 
@@ -70,7 +74,6 @@ func parse_files() {
 			}
 		}
 	}
-
 }
 
 func do_gen_decl(node *ast.GenDecl) {
