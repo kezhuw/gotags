@@ -1,0 +1,7 @@
+Install
+
+$ gomake install
+
+Usage
+
+$ find . -name "*.go" | xargs gotags > tags
