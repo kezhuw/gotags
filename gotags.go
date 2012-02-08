@@ -24,7 +24,6 @@
 package main
 
 import (
-	"container/vector"
 	"fmt"
 	"go/ast"
 	"go/token"
@@ -34,14 +33,14 @@ import (
 )
 
 var (
-	tags vector.StringVector
+	tags []string
 )
 
 var fset = token.NewFileSet()
 
 func output_tag(name *ast.Ident, kind byte) {
 	pos := fset.Position(name.NamePos);
-	tags.Push(fmt.Sprintf("%s\t%s\t%d;\"\t%c",
+	tags = append(tags, fmt.Sprintf("%s\t%s\t%d;\"\t%c",
 		name.Name, pos.Filename, pos.Line, kind))
 }
 
@@ -59,9 +58,9 @@ const FUNC, TYPE, VAR = 'f', 't', 'v'
 
 func parse_files() {
 	for _, file := range os.Args[1:] {
-		tree, ok := parser.ParseFile(fset, file, nil, 0)
-		if ok != nil {
-			fmt.Println("error parsing file", file, ok.String())
+		tree, err := parser.ParseFile(fset, file, nil, 0)
+		if err != nil {
+			fmt.Println("error parsing file", file, err)
 			panic(nil)
 		}
 
